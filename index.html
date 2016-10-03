@@ -1,0 +1,157 @@
+<!---
+Készítette: Fuisz Gábor
+3d-s játék. irányítás: w, s, space
+használt könyvtár: babylon.js
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Babylon.js sample code</title>
+        <!-- Babylon.js -->
+        <script src="http://www.babylonjs.com/hand.minified-1.2.js"></script>
+        <script src="http://www.babylonjs.com/cannon.js"></script>
+        <script src="http://www.babylonjs.com/oimo.js"></script>
+        <script src="http://www.babylonjs.com/babylon.js"></script>
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+        var engine = new BABYLON.Engine(canvas, true);
+
+        var createScene = function () {
+        
+            // This creates a basic Babylon Scene object (non-mesh)
+            var scene = new BABYLON.Scene(engine);
+        	
+        	
+        	
+            // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
+            var light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(-1, -2, -1), scene);
+        
+            // Default intensity is 1. Let's dim the light a small amount
+            light.intensity = 0.7;
+        
+            /*This is needed for the shadows. Later turn out why...
+            var lightImpostor =  BABYLON.Mesh.CreateSphere("gomb", 16, 1, scene);
+	       var lightImpostorMat = new BABYLON.StandardMaterial("mat", scene);
+	       lightImpostor.material = lightImpostorMat;
+	       lightImpostorMat.emissiveColor = BABYLON.Color3.Yellow();
+	       lightImpostorMat.linkEmissiveWithDiffuse = true;
+	
+	       lightImpostor.parent = light;*/
+            
+            // Our built-in 'cube' shape. Params: name, size, scene
+            var cube = BABYLON.Mesh.CreateBox("cube1", 2, scene);
+        
+            // Move the sphere upward 1/2 its height
+            cube.position.y = 1;
+        
+            // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
+            var ground = BABYLON.Mesh.CreateGround("ground1", 50, 50, 2, scene);
+        	
+        	
+        	var cubePosition = BABYLON.Mesh.CreateBox("cubePosition", 0.0001, scene);
+        	cubePosition.position = cube.position;
+        	  // This creates and positions a follow camera
+            var camera = new BABYLON.FollowCamera("camera", new BABYLON.Vector3(0, 5, -5),scene);
+        	camera.target = cubePosition;
+        	camera.radius = 13; // how far from the object to follow
+        	camera.heightOffset =4; // how high above the object to place the camera
+        	camera.rotationOffset = 180; // the viewing angle
+        	camera.cameraAcceleration = 0.5; // how fast to move
+        	camera.maxCameraSpeed = 100; // speed limit
+        	scene.activeCamera = camera;
+        	
+        	//allowing physics
+        	scene.enablePhysics();
+        	cube.physicsImpostor = new BABYLON.PhysicsImpostor(cube, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 2, friction: 0.5 }, scene);
+        	ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, friction: 0.5 }, scene);
+        	
+            
+            //controlls
+            moveForward = function(){
+                cube.applyImpulse(new BABYLON.Vector3(0,0,15), cube.getAbsolutePosition());
+            }
+            
+            moveBackward = function(){
+                cube.applyImpulse(new BABYLON.Vector3(0,0,-15), cube.getAbsolutePosition());
+            }
+            
+            jump = function(){
+                cube.applyImpulse(new BABYLON.Vector3(0,20,0), cube.getAbsolutePosition());
+            }
+            /*scene.actionManager = new BABYLON.ActionManager(scene);
+            scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function (evt) {
+                if (evt.sourceEvent.key == "w") {
+                    moveForward();
+                }
+            }));*/
+            
+           observer= scene.onBeforeRenderObservable.add(function(){
+                window.onkeyup= function(e){
+                    var ev = e || event;
+                    if(ev.keyCode == 87){
+                        moveForward();
+                    }
+                    if(ev.keyCode == 83){
+                        moveBackward();
+                    }
+                    if(ev.keyCode == 32){
+                        jump();
+                    }
+                }
+                
+            });
+            
+            
+            
+            //add shadows
+            var shadowGenerator = new BABYLON.ShadowGenerator(1024, light);
+	        shadowGenerator.getShadowMap().renderList.push(cube,ground);
+	        shadowGenerator.setDarkness(0.5);
+	        shadowGenerator.usePoissonSampling = true;
+	
+	        cube.receiveShadows = true;
+            ground.receiveShadows = true;          
+            
+            return scene;
+        
+        };
+        
+        var scene = createScene();
+
+        engine.runRenderLoop(function () {
+            //custom function call:
+            /*scene.logconsole();*/
+            
+            scene.render();
+        });
+
+        
+        
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
