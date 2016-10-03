@@ -99,6 +99,14 @@ használt könyvtár: babylon.js
             jump = function(){
                 cube.applyImpulse(new BABYLON.Vector3(0,20,0), cube.getAbsolutePosition());
             }
+            
+            createPlatform = function(x,y,z){
+                var cylinder = BABYLON.Mesh.CreateCylinder("cylinder", 0.125, 5, 5, 30, 1, scene, false);
+                cylinder.position = new BABYLON.Vector3(x,y,z);
+                cylinder.physicsImpostor = new BABYLON.PhysicsImpostor(cylinder, BABYLON.PhysicsImpostor.CylinderImpostor, { mass: 0, friction: 0.5 }, scene);
+            }
+            
+            createPlatform(0,3,10);
             /*scene.actionManager = new BABYLON.ActionManager(scene);
             scene.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnKeyUpTrigger, function (evt) {
                 if (evt.sourceEvent.key == "w") {
@@ -106,7 +114,7 @@ használt könyvtár: babylon.js
                 }
             }));*/
             
-           observer= scene.onBeforeRenderObservable.add(function(){
+           /*observer= scene.onBeforeRenderObservable.add(function(){
                 window.onkeyup= function(e){
                     var ev = e || event;
                     if(ev.keyCode == 87){
@@ -120,7 +128,7 @@ használt könyvtár: babylon.js
                     }
                 }
                 
-            });
+            });*/
             
             
             
@@ -138,14 +146,51 @@ használt könyvtár: babylon.js
         };
         
         var scene = createScene();
-
+        
+        /*var myDate = new Date();
+        var myStamp = d.getTime();*/
+        
+        var platform_sum = 0;
+        var platform_should_be =false;
+        var myVar = setInterval(myTimer ,4500);
+        
+        function myTimer() {
+            platform_should_be=true;
+        }
         engine.runRenderLoop(function () {
             //custom function call:
-            /*scene.logconsole();*/
+            /*scene.logconsole();*/                          
+            /*var myDate = new Date();
+            var myStamp = myDate.getTime();*/
+                                   
+            window.onkeyup= function(e){
+                    var ev = e || event;
+                    if(ev.keyCode == 87){
+                        moveForward();
+                    }
+                    if(ev.keyCode == 83){
+                        moveBackward();
+                    }
+                    if(ev.keyCode == 32){
+                        jump();
+                    }
+            }
+            
+            function generate() {
+                createPlatform(0, platform_sum*3, platform_sum*5);
+                platform_sum += 1;
+                console.log=platform_sum;
+            }
+            
+             if(platform_should_be){
+                generate();
+                platform_should_be=false;
+            }
             
             scene.render();
         });
 
+        
         
         
         // Resize
